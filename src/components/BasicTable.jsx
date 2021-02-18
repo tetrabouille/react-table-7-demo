@@ -1,7 +1,8 @@
+/* eslint-disable react/prop-types */
 // dependences
 import React, { useMemo } from 'react';
 import {
-  useTable, useSortBy, useGlobalFilter, useFilters, usePagination,
+  useTable, useSortBy, useGlobalFilter, useFilters, usePagination, useRowSelect,
 } from 'react-table';
 import { Icon, Table } from 'semantic-ui-react';
 import MOCK_DATA from '../mock_data/MOCK_DATA.json';
@@ -9,6 +10,7 @@ import { COLUMNS } from './columns';
 import { TableFilter, ColumnFilter } from './TableFilters';
 import PaginationButtons from './PaginationButtons';
 import SelectPage from './SelectPage';
+import TableCheckbox from './TableCheckbox';
 
 // css
 import './BasciTable.scss';
@@ -30,7 +32,21 @@ const BasicTable = () => {
   useFilters,
   useGlobalFilter,
   useSortBy,
-  usePagination);
+  usePagination,
+  useRowSelect,
+  (hooks) => {
+    hooks.visibleColumns.push((localColumns) => [{
+      id: 'selection',
+      Header: ({ getToggleAllRowsSelectedProps }) => (
+        <TableCheckbox {...getToggleAllRowsSelectedProps()} />
+      ),
+      Cell: ({ row }) => (
+        <TableCheckbox {...row.getToggleRowSelectedProps()} />
+      ),
+    },
+    ...localColumns,
+    ]);
+  });
 
   const {
     getTableProps,
@@ -49,6 +65,7 @@ const BasicTable = () => {
     prepareRow,
     state,
     setGlobalFilter,
+    selectedFlatRows,
   } = tableInstance;
   const { globalFilter, pageIndex, pageSize } = state;
 
@@ -185,6 +202,11 @@ const BasicTable = () => {
             className: 'dark-label',
           })}
         />
+      </div>
+      <div>
+        {JSON.stringify({
+          selectedFlatRows: selectedFlatRows.map((row) => row.original),
+        }, null, 2)}
       </div>
     </>
   );
