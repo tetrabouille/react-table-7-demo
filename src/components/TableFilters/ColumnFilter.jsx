@@ -4,6 +4,8 @@ import TableFilter from './TableFilter';
 
 const ColumnFilter = ({
   column,
+  inputProps,
+  searchTimer,
 }) => {
   const { filterValue, setFilter } = column;
 
@@ -11,19 +13,8 @@ const ColumnFilter = ({
     <TableFilter
       filter={filterValue}
       setFilter={setFilter}
-      getInputProps={() => ({
-        transparent: true,
-        inverted: true,
-        placeholer: 'Search...',
-        size: 'mini',
-        style: {
-          borderStyle: 'solid',
-          borderRadius: '4px',
-          borderWidth: '1px',
-          borderColor: 'white',
-          padding: '5px 10px',
-        },
-      })}
+      inputProps={inputProps}
+      searchTimer={searchTimer}
     />
   );
 };
@@ -34,6 +25,15 @@ ColumnFilter.propTypes = {
     filterValue: PropTypes.string,
     setFilter: PropTypes.func,
   }).isRequired,
+  // Props additionnels passés à l'input Semantic
+  inputProps: PropTypes.objectOf(PropTypes.any),
+  // Timer en ms apres lequel on effectue une recherche (apres modification de l'input)
+  searchTimer: PropTypes.number,
+};
+
+ColumnFilter.defaultProps = {
+  inputProps: {},
+  searchTimer: undefined,
 };
 
 export default ColumnFilter;

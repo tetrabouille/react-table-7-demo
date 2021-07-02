@@ -3,6 +3,8 @@ import './App.css';
 import { Container, Segment } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css';
 import { BasicTable } from './components';
+import MOCK_DATA from './mock_data/MOCK_DATA.json';
+import { COLUMNS } from './components/columns';
 
 function App() {
   return (
@@ -15,7 +17,10 @@ function App() {
         </Segment>
         <Segment inverted attached="bottom">
           <Container fluid textAlign="left">
-            <BasicTable />
+            <BasicTable
+              columns={COLUMNS}
+              data={MOCK_DATA}
+            />
           </Container>
         </Segment>
       </Container>

@@ -1,26 +1,42 @@
-// dependences
 import React, { useMemo } from 'react';
 import {
   useTable, useSortBy, useGlobalFilter, useFilters, usePagination,
 } from 'react-table';
 import { Icon, Table } from 'semantic-ui-react';
-import MOCK_DATA from '../mock_data/MOCK_DATA.json';
-import { COLUMNS } from './columns';
-import { TableFilter, ColumnFilter } from './TableFilters';
+import PropTypes from 'prop-types';
+
 import PaginationButtons from './PaginationButtons';
 import SelectPage from './SelectPage';
+import { ColumnFilter, TableFilter } from './TableFilters';
 
 // css
 import './BasciTable.scss';
 
 // TABLE
-const BasicTable = () => {
-  const columns = useMemo(() => COLUMNS, []);
-  const data = useMemo(() => MOCK_DATA, []);
-
-  const defaultColumn = useMemo(() => ({
-    Filter: ColumnFilter,
-  }), []);
+const BasicTable = ({
+  columns,
+  data,
+  withColumnFilter,
+  withGlobalFilter,
+  tableProps,
+  columnFilterProps,
+  globalFilterProps,
+  filterSearchTimer,
+  headerStyle,
+  footerStyle,
+}) => {
+  const defaultColumn = useMemo(() => {
+    const ColumnFilterWithProps = (props) => (
+      <ColumnFilter
+        searchTimer={filterSearchTimer}
+        inputProps={columnFilterProps}
+        {...props}
+      />
+    );
+    return {
+      Filter: ColumnFilterWithProps,
+    };
+  }, [columnFilterProps, filterSearchTimer]);
 
   const tableInstance = useTable({
     columns,
@@ -54,22 +70,19 @@ const BasicTable = () => {
 
   return (
     <>
+      {withGlobalFilter && (
       <TableFilter
         filter={globalFilter}
         setFilter={setGlobalFilter}
-        getInputProps={() => ({
-          label: 'Recherche Global',
-          inverted: true,
-        })}
+        inputProps={globalFilterProps}
       />
+      )}
       <Table
-        inverted
-        selectable
-        striped
         {...getTableProps()}
         style={{
           marginTop: '20px',
         }}
+        {...tableProps}
       >
         <Table.Header>
           {
@@ -79,10 +92,7 @@ const BasicTable = () => {
                 headerGroup.headers.map((column, headerIndex) => (
                   <Table.HeaderCell
                     {...column.getHeaderProps()}
-                    style={{
-                      backgroundColor: '#1976D2',
-                      color: 'white',
-                    }}
+                    style={headerStyle}
                     key={`header-${String(headerGroupIndex)}-${String(headerIndex)}`}
                   >
                     <div
@@ -100,9 +110,11 @@ const BasicTable = () => {
                         />
                       )}
                     </div>
-                    <div style={{ marginTop: '5px' }}>
-                      {column.canFilter && column.render('Filter')}
-                    </div>
+                    {withColumnFilter && (
+                      <div style={{ marginTop: '5px' }}>
+                        {column.canFilter && column.render('Filter')}
+                      </div>
+                    )}
                   </Table.HeaderCell>
                 ))
               }
@@ -134,9 +146,7 @@ const BasicTable = () => {
                 footerGroup.headers.map((column, cellIndex) => (
                   <Table.HeaderCell
                     {...column.getFooterProps}
-                    style={{
-                      backgroundColor: '#1976D2', color: 'white',
-                    }}
+                    style={footerStyle}
                     key={`footer-cell-${String(cellIndex)}`}
                   >
                     { column.render('Footer') }
@@ -158,36 +168,72 @@ const BasicTable = () => {
           disableNext={!canNextPage}
           pageIndex={pageIndex + 1}
           pagesLength={pageOptions.length}
-          getButtonsProps={() => ({
+          buttonsProps={{
             inverted: true,
             style: {
               margin: '0',
             },
-          })}
-          getInputProps={() => ({
+          }}
+          inputProps={{
             inverted: true,
             transparent: true,
             style: {
               maxWidth: '5rem',
             },
             className: 'dark-label',
-          })}
-          getLabelProps={() => ({
+          }}
+          labelProps={{
             className: 'dark-label',
-          })}
+          }}
         />
         <SelectPage
           pageSizesList={[10, 20, 30, 40, 50]}
           setPageSize={setPageSize}
           label="lignes"
           pageSize={pageSize}
-          getExtraProps={() => ({
+          extraProps={{
             className: 'dark-label',
-          })}
+          }}
         />
       </div>
     </>
   );
+};
+
+BasicTable.propTypes = {
+  // Configuration des columns
+  columns: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.any)),
+  // Données à afficher dans la table
+  data: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.any)),
+  // Ajoute un champ de recherche par colonne
+  withColumnFilter: PropTypes.bool,
+  // Ajoute un champ de recherche global
+  withGlobalFilter: PropTypes.bool,
+  // Props additionnels passés à la table Semantic
+  tableProps: PropTypes.objectOf(PropTypes.any),
+  // Props additionnels pour le filtre des columns
+  columnFilterProps: PropTypes.objectOf(PropTypes.any),
+  // Props additionnels pour le filtre global
+  globalFilterProps: PropTypes.objectOf(PropTypes.any),
+  // Temporisation entre la saisie dans un champ de recherche et l'exécution de la recherche
+  filterSearchTimer: PropTypes.number,
+  // Style donnée au header de la table
+  headerStyle: PropTypes.objectOf(PropTypes.any),
+  // Style donnée au footer de la table
+  footerStyle: PropTypes.objectOf(PropTypes.any),
+};
+
+BasicTable.defaultProps = {
+  columns: [],
+  data: [],
+  withColumnFilter: false,
+  withGlobalFilter: false,
+  tableProps: {},
+  columnFilterProps: {},
+  globalFilterProps: {},
+  filterSearchTimer: undefined,
+  headerStyle: {},
+  footerStyle: {},
 };
 
 export default BasicTable;
