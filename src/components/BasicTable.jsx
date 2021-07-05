@@ -1,6 +1,11 @@
 import React, { useMemo } from 'react';
 import {
-  useTable, useSortBy, useGlobalFilter, useFilters, usePagination,
+  useTable,
+  useSortBy,
+  useGlobalFilter,
+  useFilters,
+  usePagination,
+  useExpanded,
 } from 'react-table';
 import { Icon, Table } from 'semantic-ui-react';
 import PropTypes from 'prop-types';
@@ -24,6 +29,9 @@ const BasicTable = ({
   filterSearchTimer,
   headerStyle,
   footerStyle,
+  expandIconUp,
+  expandIconRight,
+  expandIconDown,
 }) => {
   const defaultColumn = useMemo(() => {
     const ColumnFilterWithProps = (props) => (
@@ -46,6 +54,7 @@ const BasicTable = ({
   useFilters,
   useGlobalFilter,
   useSortBy,
+  useExpanded,
   usePagination);
 
   const {
@@ -65,8 +74,13 @@ const BasicTable = ({
     prepareRow,
     state,
     setGlobalFilter,
+    getToggleAllRowsExpandedProps,
+    toggleAllRowsExpanded,
+    isAllRowsExpanded,
   } = tableInstance;
-  const { globalFilter, pageIndex, pageSize } = state;
+  const {
+    globalFilter, pageIndex, pageSize, expanded,
+  } = state;
 
   return (
     <>
@@ -89,34 +103,63 @@ const BasicTable = ({
           headerGroups.map((headerGroup, headerGroupIndex) => (
             <Table.Row {...headerGroup.getHeaderGroupProps()} key={`header-group-${String(headerGroupIndex)}`}>
               {
-                headerGroup.headers.map((column, headerIndex) => (
-                  <Table.HeaderCell
-                    {...column.getHeaderProps()}
-                    style={headerStyle}
-                    key={`header-${String(headerGroupIndex)}-${String(headerIndex)}`}
-                  >
-                    <div
-                      {...column.getSortByToggleProps()}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr auto',
-                        cursor: 'pointer',
-                      }}
+                headerGroup.headers.map((column, headerIndex) => {
+                  // 0 : tout replié | 1 : certain déplié | 2 : tout déplié
+                  const expandedState = (() => {
+                    if (!Object.keys(expanded).length) return 0;
+                    return !isAllRowsExpanded ? 1 : 2;
+                  })();
+                  // True si la column est celle des boutons de dépliement
+                  const isExpander = column.id === 'expander';
+                  // ne pas utiliser les props de trie pour une column expand
+                  const headerDivProps = !isExpander
+                    ? column.getSortByToggleProps()
+                    : getToggleAllRowsExpandedProps({
+                      onClick: () => toggleAllRowsExpanded(expandedState === 0),
+                    });
+                  return (
+                    <Table.HeaderCell
+                      {...column.getHeaderProps()}
+                      style={headerStyle}
+                      key={`header-${String(headerGroupIndex)}-${String(headerIndex)}`}
                     >
-                      {column.render('Header')}
-                      {column.isSorted && (
+                      <span
+                        {...headerDivProps}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr auto',
+                          cursor: column.disableSortBy && !isExpander ? 'normal' : 'pointer',
+                        }}
+                      >
+                        {!isExpander && column.render('Header')}
+                        {column.isSorted && (
+                          <Icon
+                            name={column.isSortedDesc ? 'sort down' : 'sort up'}
+                          />
+                        )}
+                        {isExpander && (
                         <Icon
-                          name={column.isSortedDesc ? 'sort down' : 'sort up'}
+                          name={(() => {
+                            switch (expandedState) {
+                              case 0: return expandIconUp;
+                              case 1: return expandIconRight;
+                              case 2: default: return expandIconDown;
+                            }
+                          })()}
+                          style={{
+                            fontSize: '17px',
+                          }}
                         />
+                        )}
+                      </span>
+                      {withColumnFilter && (
+                        <div style={{ marginTop: '5px' }}>
+                          {column.canFilter && column.render('Filter')}
+                        </div>
                       )}
-                    </div>
-                    {withColumnFilter && (
-                      <div style={{ marginTop: '5px' }}>
-                        {column.canFilter && column.render('Filter')}
-                      </div>
-                    )}
-                  </Table.HeaderCell>
-                ))
+                    </Table.HeaderCell>
+                  );
+                })
               }
             </Table.Row>
           ))
@@ -128,11 +171,28 @@ const BasicTable = ({
             return (
               <Table.Row {...row.getRowProps()} key={`row-${String(rowIndex)}`}>
                 {
-                row.cells.map((cell, cellIndex) => (
-                  <Table.Cell {...cell.getCellProps()} key={`cell-${String(rowIndex)}-${String(cellIndex)}`}>
-                    {cell.render('Cell')}
-                  </Table.Cell>
-                ))
+                row.cells.map((cell, cellIndex) => {
+                  const isExpander = cell.column.id === 'expander';
+                  return (
+                    <Table.Cell {...cell.getCellProps()} key={`cell-${String(rowIndex)}-${String(cellIndex)}`}>
+                      {!isExpander && cell.render('Cell')}
+                      {isExpander && cell.row.canExpand && (
+                      <span
+                        {...cell.row.getToggleRowExpandedProps({
+                          style: {
+                            paddingLeft: `${row.depth * 1.5}rem`,
+                            display: 'grid',
+                          },
+                        })}
+                      >
+                        <Icon
+                          name={cell.row.isExpanded ? expandIconDown : expandIconRight}
+                        />
+                      </span>
+                      )}
+                    </Table.Cell>
+                  );
+                })
               }
               </Table.Row>
             );
@@ -149,7 +209,7 @@ const BasicTable = ({
                     style={footerStyle}
                     key={`footer-cell-${String(cellIndex)}`}
                   >
-                    { column.render('Footer') }
+                    {column.render('Footer')}
                   </Table.HeaderCell>
                 ))
               }
@@ -221,6 +281,12 @@ BasicTable.propTypes = {
   headerStyle: PropTypes.objectOf(PropTypes.any),
   // Style donnée au footer de la table
   footerStyle: PropTypes.objectOf(PropTypes.any),
+  // Nom de l'icon pour déplier les lignes : flèche haut
+  expandIconUp: PropTypes.string,
+  // Nom de l'icon pour déplier les lignes : flèche droite
+  expandIconRight: PropTypes.string,
+  // Nom de l'icon pour déplier les lignes : flèche bas
+  expandIconDown: PropTypes.string,
 };
 
 BasicTable.defaultProps = {
@@ -234,6 +300,9 @@ BasicTable.defaultProps = {
   filterSearchTimer: undefined,
   headerStyle: {},
   footerStyle: {},
+  expandIconUp: 'arrow up',
+  expandIconRight: 'arrow right',
+  expandIconDown: 'arrow down',
 };
 
 export default BasicTable;
