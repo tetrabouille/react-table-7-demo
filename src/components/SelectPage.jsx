@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
-import { Dropdown } from 'semantic-ui-react';
+import React, { useMemo } from 'react'
+import PropTypes from 'prop-types'
+import { Dropdown } from 'semantic-ui-react'
 
 const SelectPage = ({
   pageSizesList,
@@ -9,10 +9,14 @@ const SelectPage = ({
   label,
   getExtraProps,
 }) => {
-  const options = useMemo(() => pageSizesList.map((localPageSize) => ({
-    text: `${localPageSize} ${label}`,
-    value: localPageSize,
-  })), [label, pageSizesList]);
+  const options = useMemo(
+    () =>
+      pageSizesList.map((localPageSize) => ({
+        text: `${localPageSize} ${label}`,
+        value: localPageSize,
+      })),
+    [label, pageSizesList]
+  )
 
   return (
     <Dropdown
@@ -20,12 +24,12 @@ const SelectPage = ({
       options={options}
       defaultValue={pageSize}
       onChange={(e, { value }) => {
-        setPageSize(Number(value));
+        setPageSize(Number(value))
       }}
       {...getExtraProps()}
     />
-  );
-};
+  )
+}
 
 SelectPage.propTypes = {
   // Enumeration des options de sélection du nombre de lignes par page.
@@ -38,11 +42,11 @@ SelectPage.propTypes = {
   label: PropTypes.string,
   // Fonction qui retourne des props supplémentaire à passer à Select.
   getExtraProps: PropTypes.func,
-};
+}
 
 SelectPage.defaultProps = {
   label: '',
   getExtraProps: () => ({}),
-};
+}
 
-export default SelectPage;
+export default SelectPage

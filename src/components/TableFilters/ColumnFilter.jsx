@@ -1,11 +1,9 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import TableFilter from './TableFilter';
+import React from 'react'
+import PropTypes from 'prop-types'
+import TableFilter from './TableFilter'
 
-const ColumnFilter = ({
-  column,
-}) => {
-  const { filterValue, setFilter } = column;
+const ColumnFilter = ({ column }) => {
+  const { filterValue, setFilter } = column
 
   return (
     <TableFilter
@@ -25,8 +23,8 @@ const ColumnFilter = ({
         },
       })}
     />
-  );
-};
+  )
+}
 
 ColumnFilter.propTypes = {
   // Objet column récupéré par react-table
@@ -34,6 +32,6 @@ ColumnFilter.propTypes = {
     filterValue: PropTypes.string,
     setFilter: PropTypes.func,
   }).isRequired,
-};
+}
 
-export default ColumnFilter;
+export default ColumnFilter

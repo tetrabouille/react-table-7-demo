@@ -1,5 +1,5 @@
-import React from 'react';
-import { format } from 'date-fns';
+import React from 'react'
+import { format } from 'date-fns'
 
 const COLUMNS = [
   {
@@ -27,6 +27,7 @@ const COLUMNS = [
     Header: 'Date de naissance',
     accessor: 'birth_date',
     Footer: 'Date de naissance',
+    // eslint-disable-next-line react/prop-types
     Cell: ({ value }) => (
       <div style={{ minWidth: '160px' }}>
         {format(new Date(value), 'dd/MM/yyyy')}
@@ -43,6 +44,6 @@ const COLUMNS = [
     accessor: 'phone',
     Footer: 'Téléphone',
   },
-];
+]
 
-export { COLUMNS };
+export { COLUMNS }

@@ -1,36 +1,45 @@
 // dependences
-import React, { useMemo } from 'react';
+import React, { useMemo } from 'react'
 import {
-  useTable, useSortBy, useGlobalFilter, useFilters, usePagination,
-} from 'react-table';
-import { Icon, Table } from 'semantic-ui-react';
-import MOCK_DATA from '../mock_data/MOCK_DATA.json';
-import { COLUMNS } from './columns';
-import { TableFilter, ColumnFilter } from './TableFilters';
-import PaginationButtons from './PaginationButtons';
-import SelectPage from './SelectPage';
+  useTable,
+  useSortBy,
+  useGlobalFilter,
+  useFilters,
+  usePagination,
+} from 'react-table'
+import { Icon, Table } from 'semantic-ui-react'
+import MOCK_DATA from '../mock_data/MOCK_DATA.json'
+import { COLUMNS } from './columns'
+import { TableFilter, ColumnFilter } from './TableFilters'
+import PaginationButtons from './PaginationButtons'
+import SelectPage from './SelectPage'
 
 // css
-import './BasciTable.scss';
+import './BasciTable.scss'
 
 // TABLE
 const BasicTable = () => {
-  const columns = useMemo(() => COLUMNS, []);
-  const data = useMemo(() => MOCK_DATA, []);
+  const columns = useMemo(() => COLUMNS, [])
+  const data = useMemo(() => MOCK_DATA, [])
 
-  const defaultColumn = useMemo(() => ({
-    Filter: ColumnFilter,
-  }), []);
+  const defaultColumn = useMemo(
+    () => ({
+      Filter: ColumnFilter,
+    }),
+    []
+  )
 
-  const tableInstance = useTable({
-    columns,
-    data,
-    defaultColumn,
-  },
-  useFilters,
-  useGlobalFilter,
-  useSortBy,
-  usePagination);
+  const tableInstance = useTable(
+    {
+      columns,
+      data,
+      defaultColumn,
+    },
+    useFilters,
+    useGlobalFilter,
+    useSortBy,
+    usePagination
+  )
 
   const {
     getTableProps,
@@ -49,8 +58,8 @@ const BasicTable = () => {
     prepareRow,
     state,
     setGlobalFilter,
-  } = tableInstance;
-  const { globalFilter, pageIndex, pageSize } = state;
+  } = tableInstance
+  const { globalFilter, pageIndex, pageSize } = state
 
   return (
     <>
@@ -72,80 +81,82 @@ const BasicTable = () => {
         }}
       >
         <Table.Header>
-          {
-          headerGroups.map((headerGroup, headerGroupIndex) => (
-            <Table.Row {...headerGroup.getHeaderGroupProps()} key={`header-group-${String(headerGroupIndex)}`}>
-              {
-                headerGroup.headers.map((column, headerIndex) => (
-                  <Table.HeaderCell
-                    {...column.getHeaderProps()}
+          {headerGroups.map((headerGroup, headerGroupIndex) => (
+            <Table.Row
+              {...headerGroup.getHeaderGroupProps()}
+              key={`header-group-${String(headerGroupIndex)}`}
+            >
+              {headerGroup.headers.map((column, headerIndex) => (
+                <Table.HeaderCell
+                  {...column.getHeaderProps()}
+                  style={{
+                    backgroundColor: '#1976D2',
+                    color: 'white',
+                  }}
+                  key={`header-${String(headerGroupIndex)}-${String(
+                    headerIndex
+                  )}`}
+                >
+                  <div
+                    {...column.getSortByToggleProps()}
                     style={{
-                      backgroundColor: '#1976D2',
-                      color: 'white',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto',
+                      cursor: 'pointer',
                     }}
-                    key={`header-${String(headerGroupIndex)}-${String(headerIndex)}`}
                   >
-                    <div
-                      {...column.getSortByToggleProps()}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr auto',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {column.render('Header')}
-                      {column.isSorted && (
-                        <Icon
-                          name={column.isSortedDesc ? 'sort down' : 'sort up'}
-                        />
-                      )}
-                    </div>
-                    <div style={{ marginTop: '5px' }}>
-                      {column.canFilter && column.render('Filter')}
-                    </div>
-                  </Table.HeaderCell>
-                ))
-              }
+                    {column.render('Header')}
+                    {column.isSorted && (
+                      <Icon
+                        name={column.isSortedDesc ? 'sort down' : 'sort up'}
+                      />
+                    )}
+                  </div>
+                  <div style={{ marginTop: '5px' }}>
+                    {column.canFilter && column.render('Filter')}
+                  </div>
+                </Table.HeaderCell>
+              ))}
             </Table.Row>
-          ))
-        }
+          ))}
         </Table.Header>
         <Table.Body {...getTableBodyProps()}>
           {page.map((row, rowIndex) => {
-            prepareRow(row);
+            prepareRow(row)
             return (
               <Table.Row {...row.getRowProps()} key={`row-${String(rowIndex)}`}>
-                {
-                row.cells.map((cell, cellIndex) => (
-                  <Table.Cell {...cell.getCellProps()} key={`cell-${String(rowIndex)}-${String(cellIndex)}`}>
+                {row.cells.map((cell, cellIndex) => (
+                  <Table.Cell
+                    {...cell.getCellProps()}
+                    key={`cell-${String(rowIndex)}-${String(cellIndex)}`}
+                  >
                     {cell.render('Cell')}
                   </Table.Cell>
-                ))
-              }
+                ))}
               </Table.Row>
-            );
+            )
           })}
         </Table.Body>
         <Table.Footer>
-          {
-          footerGroups.map((footerGroup, footerGroupIndex) => (
-            <Table.Row {...footerGroup.getFooterGroupProps()} key={`footer-group-${String(footerGroupIndex)}`}>
-              {
-                footerGroup.headers.map((column, cellIndex) => (
-                  <Table.HeaderCell
-                    {...column.getFooterProps}
-                    style={{
-                      backgroundColor: '#1976D2', color: 'white',
-                    }}
-                    key={`footer-cell-${String(cellIndex)}`}
-                  >
-                    { column.render('Footer') }
-                  </Table.HeaderCell>
-                ))
-              }
+          {footerGroups.map((footerGroup, footerGroupIndex) => (
+            <Table.Row
+              {...footerGroup.getFooterGroupProps()}
+              key={`footer-group-${String(footerGroupIndex)}`}
+            >
+              {footerGroup.headers.map((column, cellIndex) => (
+                <Table.HeaderCell
+                  {...column.getFooterProps}
+                  style={{
+                    backgroundColor: '#1976D2',
+                    color: 'white',
+                  }}
+                  key={`footer-cell-${String(cellIndex)}`}
+                >
+                  {column.render('Footer')}
+                </Table.HeaderCell>
+              ))}
             </Table.Row>
-          ))
-        }
+          ))}
         </Table.Footer>
       </Table>
       <div className="main-pagination-div">
@@ -187,7 +198,7 @@ const BasicTable = () => {
         />
       </div>
     </>
-  );
-};
+  )
+}
 
-export default BasicTable;
+export default BasicTable
