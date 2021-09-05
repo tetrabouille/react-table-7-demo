@@ -12,95 +12,59 @@ const PaginationButtons = ({
   disablePrevious,
   pageIndex,
   pagesLength,
-  getButtonsProps,
-  getLabelProps,
-  getInputProps,
+  buttonsProps,
+  labelProps,
+  inputProps,
 }) => {
   // States
-  const [state, setState] = useState({
-    toggleInputPage: false,
-    inputPage: String(pageIndex),
-  })
+  const [toggleInputPage, setToggleInputPage] = useState(false)
+  const [inputPage, setInputPage] = useState(String(pageIndex))
+  const [inputWidth, setInputWith] = useState(25)
+
+  // Ref
+  const inputRef = useRef(null)
+  const labelRef = useRef(null)
 
   // Automatically focus on input when toggled
-  const inputRef = useRef(null)
   useEffect(() => {
-    if (state.toggleInputPage) {
+    if (toggleInputPage) {
       inputRef.current.focus()
     }
-  }, [state.toggleInputPage])
+  }, [toggleInputPage])
 
-  // Custom width for the input according to the length of the input value
-  const dynamicInputProps = useMemo(() => {
-    const inputProps = getInputProps()
-    inputProps.style = {
-      ...inputProps.style,
-      maxWidth: `max(${(state.inputPage.length + 3) * 8}px, 3rem)`,
+  // Set the width for input as the same of the label's width
+  useEffect(() => {
+    if (labelRef.current?.clientWidth) {
+      setInputWith(labelRef.current.clientWidth)
     }
-    return inputProps
-  }, [getInputProps, state.inputPage.length])
+  }, [labelRef.current?.clientWidth])
 
-  const renderPagesLabel = useMemo(() => {
-    // Toggle input or label and reset state.inputPage
-    const handleToggleInputPage = () => {
-      setState({
-        toggleInputPage: !state.toggleInputPage,
-        inputPage: '',
-      })
-    }
+  // Toggle input or label and reset state.inputPage
+  const handleToggleInputPage = () => {
+    setToggleInputPage(!toggleInputPage)
+    setInputPage('')
+  }
 
-    // Handle change on the input
-    const handleInputPage = (e, { value }) => {
-      if (value === '') setState({ ...state, inputPage: '' })
-      else {
-        let numberValue = Number(value)
-        if (!Number.isNaN(numberValue)) {
-          if (numberValue <= 0) numberValue = 1
-          else if (numberValue > pageCount) numberValue = pageCount
-          setState({ ...state, inputPage: String(numberValue) })
-        }
+  // Handle change on the input
+  const handleInputPage = (e, { value }) => {
+    if (value === '') setInputPage('')
+    else {
+      let numberValue = Number(value)
+      if (!Number.isNaN(numberValue)) {
+        if (numberValue <= 0) numberValue = 1
+        else if (numberValue > pageCount) numberValue = pageCount
+        setInputPage(String(numberValue))
       }
     }
+  }
 
-    // Handle enter key pressed on input
-    const onEnter = (e) => {
-      if (e.key === 'Enter') {
-        setState({ ...state, toggleInputPage: false })
-        gotoPage(Number(state.inputPage) - 1)
-      }
+  // Handle enter key pressed on input
+  const onEnter = (e) => {
+    if (e.key === 'Enter') {
+      setToggleInputPage(false)
+      gotoPage(Number(inputPage) - 1)
     }
-
-    // Render label or input
-    if (pageIndex) {
-      return state.toggleInputPage ? (
-        <Input
-          ref={inputRef}
-          value={state.inputPage}
-          onBlur={handleToggleInputPage}
-          onKeyDown={onEnter}
-          onChange={handleInputPage}
-          {...dynamicInputProps}
-        />
-      ) : (
-        <Label
-          size="large"
-          onClick={handleToggleInputPage}
-          {...getLabelProps()}
-        >
-          {pagesLength ? `${pageIndex}/${pagesLength}` : pageIndex}
-        </Label>
-      )
-    }
-    return null
-  }, [
-    dynamicInputProps,
-    getLabelProps,
-    gotoPage,
-    pageCount,
-    pageIndex,
-    pagesLength,
-    state,
-  ])
+  }
 
   const gridTemplateColumns = useMemo(
     () => (pageIndex ? '1fr 4fr 1fr 4fr 1fr' : '1fr 1fr 1fr 1fr'),
@@ -121,25 +85,45 @@ const PaginationButtons = ({
           gotoPage(0)
         }}
         disabled={disablePrevious}
-        {...getButtonsProps()}
+        {...buttonsProps}
       />
       <Button
         icon
         onClick={previousPage}
         labelPosition="left"
         disabled={disablePrevious}
-        {...getButtonsProps()}
+        {...buttonsProps}
       >
         Précédent
         <Icon name="angle left" />
       </Button>
-      {renderPagesLabel}
+      {!!pageIndex &&
+        (toggleInputPage ? (
+          <Input
+            ref={inputRef}
+            value={`${inputPage}`}
+            onBlur={handleToggleInputPage}
+            onKeyDown={onEnter}
+            onChange={handleInputPage}
+            {...inputProps}
+            style={{
+              ...inputProps.style,
+              maxWidth: `${inputWidth}px`,
+            }}
+          />
+        ) : (
+          <div ref={labelRef}>
+            <Label size="large" onClick={handleToggleInputPage} {...labelProps}>
+              {pagesLength ? `${pageIndex}/${pagesLength}` : pageIndex}
+            </Label>
+          </div>
+        ))}
       <Button
         icon
         onClick={nextPage}
         labelPosition="right"
         disabled={disableNext}
-        {...getButtonsProps()}
+        {...buttonsProps}
       >
         Suivant
         <Icon name="angle right" />
@@ -150,7 +134,7 @@ const PaginationButtons = ({
           gotoPage(pageCount - 1)
         }}
         disabled={disableNext}
-        {...getButtonsProps()}
+        {...buttonsProps}
       />
     </div>
   )
@@ -161,7 +145,7 @@ PaginationButtons.propTypes = {
   nextPage: PropTypes.func.isRequired,
   // Fonction de react-table pour aller à la page précédente
   previousPage: PropTypes.func.isRequired,
-  // Fonction de react-table pour aller à la page passé en parametre
+  // Fonction de react-table pour aller à la page passé en parameter
   gotoPage: PropTypes.func.isRequired,
   // Nombre de page total
   pageCount: PropTypes.number.isRequired,
@@ -169,12 +153,12 @@ PaginationButtons.propTypes = {
   disableNext: PropTypes.bool,
   // Boolean récupéré de react-table pour désactiver le bouton previous
   disablePrevious: PropTypes.bool,
-  // Fonction pour passer des props en plus aux 2 boutons
-  getButtonsProps: PropTypes.func,
-  // Fonction pour passer des props en plus au label de pagination
-  getLabelProps: PropTypes.func,
-  // Fonction pour passer des props en plus à Input
-  getInputProps: PropTypes.func,
+  // Passer des props en plus aux 2 boutons
+  buttonsProps: PropTypes.objectOf(PropTypes.any),
+  // Passer des props en plus au label de pagination
+  labelProps: PropTypes.objectOf(PropTypes.any),
+  // Passer des props en plus à Input
+  inputProps: PropTypes.objectOf(PropTypes.any),
   // Index de la page courante
   pageIndex: PropTypes.number,
   // Nombre total de pages
@@ -184,9 +168,9 @@ PaginationButtons.propTypes = {
 PaginationButtons.defaultProps = {
   disableNext: false,
   disablePrevious: false,
-  getButtonsProps: () => ({}),
-  getLabelProps: () => ({}),
-  getInputProps: () => ({}),
+  buttonsProps: {},
+  labelProps: {},
+  inputProps: {},
   pageIndex: undefined,
   pagesLength: undefined,
 }

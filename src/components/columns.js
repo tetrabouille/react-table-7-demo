@@ -3,10 +3,14 @@ import { format } from 'date-fns'
 
 const COLUMNS = [
   {
+    id: 'expander',
+  },
+  {
     Header: 'Id',
     accessor: 'id',
     Footer: 'Id',
     disableFilters: true,
+    disableSortBy: true,
   },
   {
     Header: 'Prénom',
@@ -33,6 +37,7 @@ const COLUMNS = [
         {format(new Date(value), 'dd/MM/yyyy')}
       </div>
     ),
+    sortType: 'datetime',
   },
   {
     Header: 'Pays',

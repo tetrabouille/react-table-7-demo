@@ -7,7 +7,7 @@ const SelectPage = ({
   setPageSize,
   pageSize,
   label,
-  getExtraProps,
+  extraProps,
 }) => {
   const options = useMemo(
     () =>
@@ -26,7 +26,7 @@ const SelectPage = ({
       onChange={(e, { value }) => {
         setPageSize(Number(value))
       }}
-      {...getExtraProps()}
+      {...extraProps}
     />
   )
 }
@@ -40,13 +40,13 @@ SelectPage.propTypes = {
   pageSize: PropTypes.number.isRequired,
   // Label à rajouter aprés le nombre de page dans les options de sélection.
   label: PropTypes.string,
-  // Fonction qui retourne des props supplémentaire à passer à Select.
-  getExtraProps: PropTypes.func,
+  // Props supplémentaire à passer à Select.
+  extraProps: PropTypes.objectOf(PropTypes.any),
 }
 
 SelectPage.defaultProps = {
   label: '',
-  getExtraProps: () => ({}),
+  extraProps: {},
 }
 
 export default SelectPage
