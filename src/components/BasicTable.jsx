@@ -1,5 +1,5 @@
 // dependences
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import {
   useTable,
   useSortBy,
@@ -26,6 +26,8 @@ const BasicTable = ({
   data,
   withColumnFilter,
   withGlobalFilter,
+  withRowSelection,
+  handleRowSelection,
   tableProps,
   columnFilterProps,
   globalFilterProps,
@@ -36,6 +38,7 @@ const BasicTable = ({
   expandIconRight,
   expandIconDown,
 }) => {
+  // Ajoute le composant de filtre par column
   const defaultColumn = useMemo(() => {
     const ColumnFilterWithProps = (props) => (
       <ColumnFilter
@@ -49,6 +52,30 @@ const BasicTable = ({
     }
   }, [columnFilterProps, filterSearchTimer])
 
+  // Pour sélectionner des lignes
+  const rowSelectionParams = useMemo(() => {
+    if (withRowSelection) {
+      return [
+        useRowSelect,
+        (hooks) => {
+          hooks.visibleColumns.push((localColumns) => [
+            {
+              id: 'selection',
+              Header: ({ getToggleAllRowsSelectedProps }) => (
+                <TableCheckbox {...getToggleAllRowsSelectedProps()} />
+              ),
+              Cell: ({ row }) => (
+                <TableCheckbox {...row.getToggleRowSelectedProps()} />
+              ),
+            },
+            ...localColumns,
+          ])
+        },
+      ]
+    }
+    return []
+  }, [withRowSelection])
+
   const tableInstance = useTable(
     {
       columns,
@@ -60,21 +87,7 @@ const BasicTable = ({
     useSortBy,
     useExpanded,
     usePagination,
-    useRowSelect,
-    (hooks) => {
-      hooks.visibleColumns.push((localColumns) => [
-        {
-          id: 'selection',
-          Header: ({ getToggleAllRowsSelectedProps }) => (
-            <TableCheckbox {...getToggleAllRowsSelectedProps()} />
-          ),
-          Cell: ({ row }) => (
-            <TableCheckbox {...row.getToggleRowSelectedProps()} />
-          ),
-        },
-        ...localColumns,
-      ])
-    }
+    ...rowSelectionParams
   )
 
   const {
@@ -100,6 +113,11 @@ const BasicTable = ({
     selectedFlatRows,
   } = tableInstance
   const { globalFilter, pageIndex, pageSize, expanded } = state
+
+  // Appel de la callback aprés sélection de lignes
+  useEffect(() => {
+    handleRowSelection(selectedFlatRows)
+  }, [selectedFlatRows, handleRowSelection])
 
   return (
     <>
@@ -287,15 +305,6 @@ const BasicTable = ({
           }}
         />
       </div>
-      <div>
-        {JSON.stringify(
-          {
-            selectedFlatRows: selectedFlatRows.map((row) => row.original),
-          },
-          null,
-          2
-        )}
-      </div>
     </>
   )
 }
@@ -309,6 +318,10 @@ BasicTable.propTypes = {
   withColumnFilter: PropTypes.bool,
   // Ajoute un champ de recherche global
   withGlobalFilter: PropTypes.bool,
+  // Ajoute une colonne pour sélectionner des lignes
+  withRowSelection: PropTypes.bool,
+  // Callback aprés la sélection de lignes
+  handleRowSelection: PropTypes.func,
   // Props additionnels passés à la table Semantic
   tableProps: PropTypes.objectOf(PropTypes.any),
   // Props additionnels pour le filtre des columns
@@ -334,6 +347,8 @@ BasicTable.defaultProps = {
   data: [],
   withColumnFilter: false,
   withGlobalFilter: false,
+  withRowSelection: false,
+  handleRowSelection: () => {},
   tableProps: {},
   columnFilterProps: {},
   globalFilterProps: {},
