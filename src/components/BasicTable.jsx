@@ -7,6 +7,7 @@ import {
   useFilters,
   usePagination,
   useExpanded,
+  useRowSelect,
 } from 'react-table'
 import { Icon, Table } from 'semantic-ui-react'
 import PropTypes from 'prop-types'
@@ -14,6 +15,7 @@ import PropTypes from 'prop-types'
 import PaginationButtons from './PaginationButtons'
 import SelectPage from './SelectPage'
 import { ColumnFilter, TableFilter } from './TableFilters'
+import TableCheckbox from './TableCheckbox'
 
 // css
 import './BasciTable.scss'
@@ -57,7 +59,22 @@ const BasicTable = ({
     useGlobalFilter,
     useSortBy,
     useExpanded,
-    usePagination
+    usePagination,
+    useRowSelect,
+    (hooks) => {
+      hooks.visibleColumns.push((localColumns) => [
+        {
+          id: 'selection',
+          Header: ({ getToggleAllRowsSelectedProps }) => (
+            <TableCheckbox {...getToggleAllRowsSelectedProps()} />
+          ),
+          Cell: ({ row }) => (
+            <TableCheckbox {...row.getToggleRowSelectedProps()} />
+          ),
+        },
+        ...localColumns,
+      ])
+    }
   )
 
   const {
@@ -80,6 +97,7 @@ const BasicTable = ({
     getToggleAllRowsExpandedProps,
     toggleAllRowsExpanded,
     isAllRowsExpanded,
+    selectedFlatRows,
   } = tableInstance
   const { globalFilter, pageIndex, pageSize, expanded } = state
 
@@ -268,6 +286,15 @@ const BasicTable = ({
             className: 'dark-label',
           }}
         />
+      </div>
+      <div>
+        {JSON.stringify(
+          {
+            selectedFlatRows: selectedFlatRows.map((row) => row.original),
+          },
+          null,
+          2
+        )}
       </div>
     </>
   )
